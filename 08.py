@@ -3,10 +3,8 @@ from typing import Dict, List
 
 class Console():
     def __init__(self, instr: str):
-        self.accumulator = 0
         self.read_instr(instr)
-        self.ptr = 0
-        self.visited = [0]
+        self.reset()
 
     def read_instr(self, instr: str):
         lines = instr.splitlines()
@@ -32,9 +30,7 @@ class Console():
         
     
     def run(self):
-        self.visited = []
-        self.accumulator = 0
-        self.ptr = 0
+
         while True:
             self.process_instr()
             if self.ptr in self.visited:
@@ -44,28 +40,28 @@ class Console():
                 return {"reason": "correct", "acc": self.accumulator}
             self.visited.append(self.ptr)
 
-    def inscope(self):
-        output = []
-        for idx, instr in enumerate(self.instr):
-            inp, _ = instr
-            if inp in ["jmp","nop"]:
-                output.append(idx)
-        return output
 
+    def reset(self):
+        self.visited = [0]
+        self.accumulator = 0
+        self.new_instr = [i for i in self.instr]
+        self.ptr = 0
+        
     def chg(self):
-        changes = self.inscope()
         output = {}
-        for change in changes:
-            self.new_instr = self.instr
-            inp, val = self.new_instr[change]
-
+        
+        for i in range(self.program_length):
+            self.reset()
+            inp, val = self.new_instr[i]
+            if inp == "acc":
+                continue
             if inp == "jmp":
                 inp = "nop"
             elif inp == "nop":
                 inp = "jmp"
-            
-            self.new_instr[change] = (inp, val)
-            output[change+1] = self.run()
+
+            self.new_instr[i] = (inp, val)
+            output[i+1] = self.run()
         return output
 
 
